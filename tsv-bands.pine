@@ -19,7 +19,8 @@ table_size = input(title="Table size", defval="normal", options=["none","tiny", 
 // ++++++++++ SETTINGS - Color ++++++++++ //
 green = color.new(color.green, 30)
 red = color.new(color.red, 30)
-purple = color.new(color.purple, 70)
+green_soft = color.new(color.green, 90)
+red_soft = color.new(color.red, 90)
 
 // ++++++++++ LOGIC - Helper functions ++++++++++ //
 // Return stringified volume 
@@ -63,6 +64,10 @@ hline(0, title='Zero line', color=color.white, linestyle=hline.style_dotted, lin
 // ++++++++++ PLOT - Marks ++++++++++ //
 plotshape(tsv > (avg_inflow * (tsv_bands_excess_high / 100 + 1)), title="Sell", color = color.red, style=shape.xcross, location=location.top, size=size.tiny)
 plotshape(tsv < (avg_outflow * (tsv_bands_excess_low / 100 + 1)), title="Buy", color = color.green, style=shape.xcross, location=location.bottom, size=size.tiny)
+
+// ++++++++++ PLOT - Background signal ++++++++++ //
+bgcolor(crossover(tsv, 0) ? green_soft : na)
+bgcolor(crossunder(tsv, 0) ? red_soft : na)
 
 // ++++++++++ PLOT - Table  ++++++++++ //
 size = table_size == "normal" ? size.small : table_size == "tiny" ? size.tiny : size.auto
