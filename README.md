@@ -1,5 +1,7 @@
 # Time Segmented Volume Bands - TradingView script
 
+[Link to the script](https://ru.tradingview.com/script/fmuLoK0d-time-segmented-volume-bands/)
+
 This time I took as a basis TSV - Time Segmented Volume, a rather rare one, almost never mentioned on TradingView.
 
 TSV is a leading indicator because its movement is based on both the movement of the stock price and its volume. Ideal entry and exit points are usually found when a stock moves through a baseline. This indicator is similar to the more well-known balance volume (OBV) because it measures the amount of money flowing in or out of a particular stock.
