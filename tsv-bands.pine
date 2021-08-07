@@ -1,0 +1,82 @@
+//@version=4
+// 
+// Time Segmented Volume Bands by @samgozman (https://github.com/samgozman)
+// 
+// How to use this script: https://github.com/samgozman/time-segmented-volume-bands-tradingview
+// 
+// ++++++++++ Warning: The script is provided for educational purposes only. ++++++++++ //
+study("Time Segmented Volume Bands", shorttitle="TSV Bands")
+
+// ++++++++++ INPUTS ++++++++++ //
+tsv_length = input(13, title="TSV length", minval=1, group="Classic TSV settings")
+ma_fast_length = input(7, title="MA length", minval=1, group="Classic TSV settings")
+tsv_bands_length = input(44, title="TSV Bands length", minval=1, group="Bands")
+tsv_bands_excess_high= input(180, title="TSV exceeds higher band, %", minval=0, group="Bands")
+tsv_bands_excess_low = input(100, title="TSV exceeds lower band, %", minval=0, group="Bands")
+tsv_loopback = input(60, title="TSV loopback period", minval=1, group="Table")
+table_size = input(title="Table size", defval="normal", options=["none","tiny", "normal"], group="Table")
+
+// ++++++++++ SETTINGS - Color ++++++++++ //
+green = color.new(color.green, 30)
+red = color.new(color.red, 30)
+purple = color.new(color.purple, 70)
+
+// ++++++++++ LOGIC - Helper functions ++++++++++ //
+// Return stringified volume 
+volstring(value) => value > 0 ? tostring(value, format.volume) : "-" + tostring(-1*value, format.volume)
+// Return color based on difference
+colorify(a, b) => a > b ? color.green : a < b ? color.red : color.yellow
+// Create % string (50%)
+percentstring(p) => " (" + tostring(p, format.percent) + ")"
+// Bullish / bearish text
+bullbear_text(value) => value > 0 ? "Bullish" : value < 0 ? "Bearish" : "Neutral"
+// Bullish / bearish color
+bullbear_color(value) => value > 0 ? color.green : value < 0 ? color.red : color.yellow
+
+// ++++++++++ LOGIC - TSV ++++++++++ //
+tsv = sum(close > close[1] or close < close[1] ? volume * (close - close[1]) : 0, tsv_length)
+ma = sma(tsv, ma_fast_length)
+
+// ++++++++++ LOGIC - Inflow / outflow for table ++++++++++ //
+inflow = sum(tsv > 0 ? tsv : 0, tsv_loopback)
+outflow = sum(tsv < 0 ? tsv : 0, tsv_loopback) * -1
+difference = inflow - outflow
+total = inflow + outflow
+inflow_p = inflow / total * 100
+outflow_p = outflow / total * 100
+
+// ++++++++++ LOGIC - AVG bands ++++++++++ //
+avg_inflow = sma(tsv > 0 ? tsv : na, tsv_bands_length)
+avg_outflow = sma(tsv < 0 ? tsv : na, tsv_bands_length)
+
+// ++++++++++ PLOT - Main lines ++++++++++ //
+plot(tsv, color=tsv > 0 ? green : red, style=plot.style_histogram, title="TSV", linewidth=2)
+plot(ma, color=color.yellow, title="MA", linewidth=2)
+
+// ++++++++++ PLOT - AVG bands ++++++++++ //
+plot(avg_inflow, color=color.blue, title="avg_inflow", linewidth=1)
+plot(avg_outflow, color=color.blue, title="avg_outflow", linewidth=1)
+
+// ++++++++++ PLOT - H-Line ++++++++++ //
+hline(0, title='Zero line', color=color.white, linestyle=hline.style_dotted, linewidth=1)
+
+// ++++++++++ PLOT - Marks ++++++++++ //
+plotshape(tsv > (avg_inflow * (tsv_bands_excess_high / 100 + 1)), title="Sell", color = color.red, style=shape.xcross, location=location.top, size=size.tiny)
+plotshape(tsv < (avg_outflow * (tsv_bands_excess_low / 100 + 1)), title="Buy", color = color.green, style=shape.xcross, location=location.bottom, size=size.tiny)
+
+// ++++++++++ PLOT - Table  ++++++++++ //
+size = table_size == "normal" ? size.small : table_size == "tiny" ? size.tiny : size.auto
+var tbl = table.new(position.top_right, 2, 6)
+if(table_size != "none")
+    table.cell(tbl, 0, 0, "Inflow for " + tostring(tsv_loopback) + " periods",  bgcolor = #bbbbbb, text_size = size)
+    table.cell(tbl, 1, 0, "Outflow for " + tostring(tsv_loopback) + " periods", bgcolor = #bbbbbb, text_size = size)
+    table.cell(tbl, 0, 1, volstring(inflow) + percentstring(inflow_p),  bgcolor = color.white, text_size = size)
+    table.cell(tbl, 1, 1, volstring(outflow) + percentstring(outflow_p), bgcolor = color.white, text_size = size)
+    table.cell(tbl, 0, 2,  tostring(tsv_loopback) + " period vol difference:",  bgcolor = #bbbbbb, text_size = size)
+    table.cell(tbl, 1, 2, volstring(difference), bgcolor = colorify(inflow, outflow), text_size = size)
+    table.cell(tbl, 0, 3, tostring(tsv_loopback) + " period vol sentiment:",  bgcolor = #bbbbbb, text_size = size)
+    table.cell(tbl, 1, 3, bullbear_text(difference),  bgcolor = bullbear_color(difference), text_size = size)
+    table.cell(tbl, 0, 4, "Last volume sentiment:",  bgcolor = #bbbbbb,  text_size = size)
+    table.cell(tbl, 1, 4, bullbear_text(tsv),  bgcolor = bullbear_color(tsv), text_size = size)
+    table.cell(tbl, 0, 5, "Last MA sentiment:",  bgcolor = #bbbbbb,  text_size = size)
+    table.cell(tbl, 1, 5, bullbear_text(ma),  bgcolor = bullbear_color(ma), text_size = size)
