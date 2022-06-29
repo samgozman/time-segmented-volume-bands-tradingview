@@ -1,5 +1,7 @@
 # Time Segmented Volume Bands - TradingView script
 
+[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/C0C1DI4VL)
+
 [Link to the script](https://ru.tradingview.com/script/fmuLoK0d-time-segmented-volume-bands/)
 
 This time I took as a basis TSV - Time Segmented Volume, a rather rare one, almost never mentioned on TradingView.
